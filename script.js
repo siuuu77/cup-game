@@ -15,8 +15,9 @@ let speed = 800;
 let score = 0;
 let highScore = localStorage.getItem("highScore") || 0;
 let ballIndex = 0;
-let hiddenBallId = null;
+let hiddenBallId = 0;
 let cups = [];
+let canClick = false; // 控制点击状态
 
 highScoreEl.textContent = highScore;
 
@@ -41,8 +42,6 @@ difficultyButtons.forEach((btn) => {
 startButton.addEventListener("click", () => {
   startScreen.classList.add("hidden");
   gameScreen.classList.remove("hidden");
-  score = 0;
-  currentScoreEl.textContent = score;
   startRound();
 });
 
@@ -50,12 +49,13 @@ function startRound() {
   cupLine.innerHTML = "";
   resultBox.classList.add("hidden");
   cups = [];
+  canClick = false; // 开始前禁用点击
 
   for (let i = 0; i < cupCount; i++) {
     const cup = document.createElement("div");
     cup.classList.add("cup");
     cup.dataset.index = i;
-    cup.dataset.id = i; // 固定身份 ID
+    cup.dataset.id = i;
     cup.addEventListener("click", () => handleGuess(parseInt(cup.dataset.id)));
     cupLine.appendChild(cup);
     cups.push(cup);
@@ -63,25 +63,27 @@ function startRound() {
 
   placeCups(cups);
 
-  // 显示并隐藏球
+  // 🎯 展示球
   setTimeout(() => {
     ballIndex = Math.floor(Math.random() * cupCount);
-    hiddenBallId = parseInt(cups[ballIndex].dataset.id); // 记录固定身份
+    hiddenBallId = parseInt(cups[ballIndex].dataset.id); // 记录初始藏球位置
 
     const ball = document.createElement("div");
     ball.className = "ball";
     cups[ballIndex].appendChild(ball);
-    cups[ballIndex].style.top = "-60px"; // 上升
+    cups[ballIndex].style.top = "-60px";
 
     setTimeout(() => {
-      cups[ballIndex].style.top = "50px"; // 下落
+      cups[ballIndex].style.top = "50px";
       ball.remove();
     }, 1000);
   }, 500);
 
-  // 开始洗杯子
+  // 洗杯子
   setTimeout(() => {
-    shuffleCups(cups);
+    shuffleCups(cups).then(() => {
+      canClick = true; // 洗完杯后允许点击
+    });
   }, 2500);
 }
 
@@ -134,6 +136,9 @@ async function shuffleCups(cups) {
 }
 
 function handleGuess(clickedId) {
+  if (!canClick) return; //禁止点击时不处理
+  canClick = false; // 一旦点击立即锁定
+
   if (clickedId === hiddenBallId) {
     if (difficulty === "easy") score += 1;
     else if (difficulty === "medium") score += 2;
@@ -147,7 +152,7 @@ function handleGuess(clickedId) {
     cups[ballIndex].appendChild(ball);
     cups[ballIndex].style.top = "-60px";
 
-    resultText.textContent = `打错了哦！最终得分：${score}`;
+    resultText.textContent = `答错了！最终得分：${score}`;
     resultBox.classList.remove("hidden");
 
     if (score > highScore) {
