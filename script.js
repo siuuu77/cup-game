@@ -63,7 +63,7 @@ function startRound() {
 
   placeCups(cups);
 
-  // 🎯 展示球
+  // 展示球
   setTimeout(() => {
     ballIndex = Math.floor(Math.random() * cupCount);
     hiddenBallId = parseInt(cups[ballIndex].dataset.id); // 记录初始藏球位置
@@ -71,8 +71,7 @@ function startRound() {
     const ball = document.createElement("div");
     ball.className = "ball";
     cups[ballIndex].appendChild(ball);
-    cups[ballIndex].style.top = "-60px";
-
+    cups[ballIndex].style.top = "-60px";  
     setTimeout(() => {
       cups[ballIndex].style.top = "50px";
       ball.remove();
@@ -140,12 +139,28 @@ function handleGuess(clickedId) {
   canClick = false; // 一旦点击立即锁定
 
   if (clickedId === hiddenBallId) {
+    setTimeout(() => {
+    const ball = document.createElement("div");
+    ball.className = "ball";
+    cups[ballIndex].appendChild(ball);
+    cups[ballIndex].style.top = "-60px";
+    message.classList.remove("hidden"); 
+
+    setTimeout(() => {
+      cups[ballIndex].style.top = "50px";
+      ball.remove();
+      message.classList.add("hidden");
+    },1000 );
+
+  },500)
+  
+    
     if (difficulty === "easy") score += 1;
     else if (difficulty === "medium") score += 2;
     else score += 3;
 
     currentScoreEl.textContent = score;
-    setTimeout(startRound, 1000);
+    setTimeout(startRound, 3000);
   } else {
     const ball = document.createElement("div");
     ball.className = "ball";
@@ -169,3 +184,9 @@ restartButton.addEventListener("click", () => {
   gameScreen.classList.add("hidden");
   startScreen.classList.remove("hidden");
 });
+
+//改进方向
+// 1. 在杯子被正确选后呈现动画
+// 2. 更改css使杯子看起来更真实立体（已实现）
+// 3. 增加难度变量即杯子之间转换的频率
+// 4. 使得小球展示时不随杯子移动
