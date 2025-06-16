@@ -12,6 +12,7 @@ const highScoreEl = document.getElementById("high-score");
 let difficulty = null;
 let cupCount = 3;
 let speed = 800;
+let round = 5;
 let score = 0;
 let highScore = localStorage.getItem("highScore") || 0;
 let ballIndex = 0;
@@ -21,7 +22,7 @@ let canClick = false; // 控制点击状态
 
 highScoreEl.textContent = highScore;
 
-difficultyButtons.forEach((btn) => {
+difficultyButtons.forEach((btn) => { //选择难度
   btn.addEventListener("click", () => {
     difficulty = btn.dataset.difficulty;
     startButton.disabled = false;
@@ -29,17 +30,20 @@ difficultyButtons.forEach((btn) => {
     if (difficulty === "easy") {
       cupCount = 3;
       speed = 800;
+      round = 5;
     } else if (difficulty === "medium") {
       cupCount = 4;
       speed = 600;
+      round = 8;
     } else {
       cupCount = 5;
       speed = 400;
+      round = 10;
     }
   });
 });
 
-startButton.addEventListener("click", () => {
+startButton.addEventListener("click", () => { 
   startScreen.classList.add("hidden");
   gameScreen.classList.remove("hidden");
   startRound();
@@ -51,7 +55,7 @@ function startRound() {
   cups = [];
   canClick = false; // 开始前禁用点击
 
-  for (let i = 0; i < cupCount; i++) {
+  for (let i = 0; i < cupCount; i++) { //创造杯子并赋予id
     const cup = document.createElement("div");
     cup.classList.add("cup");
     cup.dataset.index = i;
@@ -86,7 +90,7 @@ function startRound() {
   }, 2500);
 }
 
-function placeCups(cups) {
+function placeCups(cups) { // 放置杯子
   const spacing = 120;
   const startX = (window.innerWidth - spacing * (cups.length - 1)) / 2;
 
@@ -97,7 +101,7 @@ function placeCups(cups) {
   });
 }
 
-function getTwoRandomIndices(max) {
+function getTwoRandomIndices(max) { //随机两个索引
   let a = Math.floor(Math.random() * max);
   let b;
   do {
@@ -106,7 +110,7 @@ function getTwoRandomIndices(max) {
   return [a, b];
 }
 
-function animateSwap(cups, a, b) {
+function animateSwap(cups, a, b) { //交换动画，同时交换dom值和数组中位置
   return new Promise((resolve) => {
     const leftA = cups[a].style.left;
     const leftB = cups[b].style.left;
@@ -123,23 +127,23 @@ function animateSwap(cups, a, b) {
     if (ballIndex === a) ballIndex = b;
     else if (ballIndex === b) ballIndex = a;
 
-    setTimeout(resolve, speed + 100);
+    setTimeout(resolve, speed - 10);
   });
 }
 
-async function shuffleCups(cups) {
-  for (let i = 0; i < 5; i++) {
+async function shuffleCups(cups) { //交换杯子
+  for (let i = 0; i < round; i++) {
     const [a, b] = getTwoRandomIndices(cups.length);
     await animateSwap(cups, a, b);
   }
 }
 
-function handleGuess(clickedId) {
+function handleGuess(clickedId) { //判定系统
   if (!canClick) return; //禁止点击时不处理
   canClick = false; // 一旦点击立即锁定
 
   if (clickedId === hiddenBallId) {
-    setTimeout(() => {
+    setTimeout(() => { //确认所选正确
     const ball = document.createElement("div");
     ball.className = "ball";
     cups[ballIndex].appendChild(ball);
@@ -178,15 +182,10 @@ function handleGuess(clickedId) {
   }
 }
 
-restartButton.addEventListener("click", () => {
+restartButton.addEventListener("click", () => { // 重置游戏
   score = 0;
   currentScoreEl.textContent = score;
   gameScreen.classList.add("hidden");
   startScreen.classList.remove("hidden");
 });
 
-//改进方向
-// 1. 在杯子被正确选后呈现动画
-// 2. 更改css使杯子看起来更真实立体（已实现）
-// 3. 增加难度变量即杯子之间转换的频率
-// 4. 使得小球展示时不随杯子移动
